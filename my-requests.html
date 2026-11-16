@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="#c8662d" name="theme-color"/>
+<title>My Requests | Barangay Document Services</title>
+<style>
+        :root {
+            --orange: #c8662d;
+            --orange-dark: #a74b1d;
+            --beige: #e9d1b3;
+            --cream: #fff9f0;
+            --ink: #342b26;
+            --muted: #81776f;
+            --line: #eee2d5;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+        }
+
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        a { text-decoration: none; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 250px;
+            background: var(--orange-dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid var(--beige);
+            z-index: 30;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 88px;
+            padding: 18px;
+            border-bottom: 1px solid #ffffff30;
+        }
+
+        .brand-icon {
+            width: 45px;
+            height: 45px;
+            flex: none;
+            display: grid;
+            place-items: center;
+            background: #ffffff20;
+            border: 1px solid #ffffff35;
+            border-radius: 10px;
+            font-size: 23px;
+        }
+
+        .brand strong { display: block; font-size: 15px; }
+        .brand small { display: block; color: #f6d8c3; font-size: 10px; margin-top: 5px; }
+        .menu-heading { padding: 24px 20px 10px; font-size: 11px; letter-spacing: 1px; color: #f2caa6; }
+        .menu { padding: 0 12px; }
+
+        .menu a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 6px;
+            border-radius: 7px;
+            color: #fff0e7;
+            font-size: 13px;
+        }
+
+        .menu a:hover { background: #ffffff18; }
+        .menu a.active { background: white; color: var(--orange-dark); font-weight: bold; border-left: 4px solid var(--beige); }
+        .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid #ffffff30; }
+        .signout { width: 100%; padding: 12px; border: 1px solid #ffffff50; background: #ffffff17; border-radius: 7px; color: white; }
+        .signout:hover { background: #ffffff2c; }
+
+        .main { margin-left: 250px; min-height: 100vh; }
+
+        .topbar {
+            min-height: 76px;
+            padding: 18px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: var(--orange);
+            border-bottom: 3px solid var(--beige);
+            color: white;
+        }
+
+        .topbar h1 { margin: 0 0 5px; font-size: 21px; }
+        .topbar p { margin: 0; font-size: 12px; color: #fff0e4; }
+        .user-chip { font-size: 12px; font-weight: bold; text-align: right; }
+        .content { max-width: 1300px; margin: auto; padding: 30px; }
+        .welcome { margin-bottom: 24px; }
+        .welcome h2 { margin: 0 0 8px; font-size: 23px; }
+        .welcome p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 23px;
+        }
+
+        .summary-card {
+            background: var(--orange);
+            color: white;
+            border-radius: 10px;
+            padding: 18px;
+            border-top: 3px solid var(--beige);
+        }
+
+        .summary-card span { font-size: 12px; color: #ffe8d7; }
+        .summary-card strong { display: block; margin-top: 8px; font-size: 28px; }
+        .panel { background: white; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; }
+
+        .panel-head {
+            padding: 19px 22px;
+            background: var(--orange);
+            color: white;
+            border-bottom: 2px solid var(--beige);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-head h3 { margin: 0; font-size: 16px; }
+        .panel-head small { color: #ffecdf; }
+        .toolbar { padding: 20px 20px 0; }
+        .search { width: 100%; max-width: 400px; padding: 12px 13px; border: 1px solid #e4d8cb; border-radius: 7px; outline: none; background: #fffcf8; }
+        .search:focus { border-color: var(--orange); }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 17px 20px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tab {
+            flex: none;
+            padding: 10px 13px;
+            background: #fffaf5;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            color: #6b5a50;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .tab.active { background: var(--orange); color: white; border-color: var(--orange); }
+        .request-list { padding: 18px 20px; min-height: 220px; }
+
+        .request-card {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 19px;
+            margin-bottom: 13px;
+            background: white;
+        }
+
+        .request-card:last-child { margin-bottom: 0; }
+        .request-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+        .request-top h4 { margin: 0 0 6px; font-size: 16px; }
+        .request-ref { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+        .pill { flex: none; font-size: 11px; font-weight: bold; padding: 7px 10px; border-radius: 20px; background: #fff0df; color: #a65b20; }
+        .pill.processing { background: #eaf1ff; color: #426cb1; }
+        .pill.ready { background: #e8f6ed; color: #267e47; }
+        .pill.completed { background: #f1eefb; color: #6651a1; }
+        .pill.rejected { background: #ffeded; color: #ae3939; }
+        .request-meta { margin: 15px 0; display: flex; flex-wrap: wrap; gap: 9px 20px; color: var(--muted); font-size: 12px; }
+        .request-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding-top: 13px; }
+        .request-bottom span { font-size: 12px; color: var(--muted); }
+        .view-btn, .new-btn { border: none; background: var(--orange); color: white; padding: 11px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .view-btn:hover, .new-btn:hover { background: var(--orange-dark); }
+        .empty { padding: 45px 12px; text-align: center; color: var(--muted); }
+        .empty h4 { margin: 0 0 8px; color: var(--ink); }
+        .empty p { font-size: 13px; line-height: 1.6; }
+        .error { color: #a43d31; }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: #27150bb0;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overlay.show { display: flex; }
+        .modal { width: min(720px, 100%); max-height: 90vh; overflow: auto; background: white; border-radius: 10px; }
+        .modal-head { padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; gap: 15px; background: var(--orange); color: white; border-bottom: 3px solid var(--beige); }
+        .modal-head h3 { margin: 0; font-size: 18px; }
+        .close { width: 33px; height: 33px; border: none; background: #ffffff27; border-radius: 50%; color: white; font-size: 20px; }
+        .modal-body { padding: 23px; }
+        .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .detail-item small { display: block; color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+        .detail-item strong { font-size: 13px; overflow-wrap: anywhere; }
+        .section-title { font-size: 15px; margin: 24px 0 15px; }
+        .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0 25px; }
+        .step { text-align: center; position: relative; color: #9c938c; }
+        .step .circle { width: 32px; height: 32px; border: 2px solid #e9dfd6; border-radius: 50%; margin: 0 auto 9px; display: grid; place-items: center; font-size: 12px; background: #fff; }
+        .step.done .circle { background: var(--orange); color: white; border-color: var(--orange); }
+        .step.done { color: var(--orange-dark); }
+        .step span { font-size: 10px; line-height: 1.4; display: block; }
+        .timeline { border-left: 2px solid var(--beige); padding-left: 19px; margin-left: 6px; }
+        .timeline-entry { position: relative; padding: 0 0 20px; }
+        .timeline-entry::before { content: ""; position: absolute; top: 3px; left: -26px; width: 10px; height: 10px; background: var(--orange); border-radius: 50%; }
+        .timeline-entry strong { font-size: 13px; }
+        .timeline-entry p { margin: 6px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+        .note { font-size: 12px; line-height: 1.6; color: var(--muted); background: #fff8ee; border: 1px solid var(--line); border-radius: 7px; padding: 12px; }
+
+        @media (max-width: 1000px) {
+            .summary { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 750px) {
+            .sidebar { width: 82px; }
+            .brand { justify-content: center; padding: 10px; }
+            .brand-text, .menu-heading { display: none; }
+            .menu { padding: 12px 5px; }
+            .menu a { text-align: center; padding: 12px 4px; font-size: 10px; overflow-wrap: anywhere; }
+            .main { margin-left: 82px; }
+            .topbar { padding: 16px; }
+            .topbar h1 { font-size: 18px; }
+            .user-chip { display: none; }
+            .content { padding: 17px 12px; }
+            .summary { gap: 9px; }
+            .summary-card { padding: 13px; }
+            .summary-card span { font-size: 10px; }
+            .summary-card strong { font-size: 23px; }
+            .panel-head { padding: 16px; }
+            .toolbar { padding: 14px 14px 0; }
+            .tabs { padding: 14px; }
+            .request-list { padding: 14px; }
+            .request-top { flex-direction: column; }
+            .request-bottom { flex-direction: column; align-items: flex-start; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .modal-body { padding: 16px; }
+        }
+    
+        /* Shared sidebar design — matches the original Resident Dashboard. */
+        .sidebar {
+            position: fixed !important;
+            inset: 0 auto 0 0 !important;
+            width: 250px !important;
+            height: 100vh !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            background: #a74b1d !important;
+            color: #ffffff !important;
+            border: 0 !important;
+            border-right: 3px solid #e9d1b3 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            z-index: 30 !important;
+            border-radius: 0 !important;
+            overflow-y: auto;
+        }
+        .sidebar .brand {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-height: 90px !important;
+            padding: 18px !important;
+            margin: 0 !important;
+            border: 0 !important;
+            border-bottom: 1px solid #ffffff30 !important;
+            color: #ffffff !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            flex-shrink: 0;
+        }
+        .sidebar .brand-mark {
+            width: 47px !important;
+            height: 47px !important;
+            flex-shrink: 0;
+            border: 2px dashed #f4d5b5 !important;
+            border-radius: 9px !important;
+            background: transparent !important;
+            display: grid !important;
+            place-items: center !important;
+            font-size: 11px !important;
+            color: #ffffff !important;
+        }
+        .sidebar .brand-copy h2 {
+            margin: 0 0 5px !important;
+            font-size: 15px !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+        .sidebar .brand-copy p {
+            margin: 0 !important;
+            color: #f7d8c3 !important;
+            font-size: 10px !important;
+            line-height: 1.5 !important;
+        }
+        .sidebar .menu-title {
+            color: #f5d5b1 !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            letter-spacing: 1px !important;
+            padding: 27px 20px 12px !important;
+            margin: 0 !important;
+            background: transparent !important;
+        }
+        .sidebar .menu {
+            display: block !important;
+            padding: 0 12px !important;
+            margin: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+        .sidebar .menu a {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-height: 45px !important;
+            padding: 12px 14px !important;
+            margin: 0 0 5px !important;
+            color: #fff4e9 !important;
+            text-decoration: none !important;
+            border: 0 !important;
+            border-radius: 7px !important;
+            font-size: 13px !important;
+            font-weight: 400 !important;
+            line-height: 1.4 !important;
+            background: transparent !important;
+            text-align: left !important;
+        }
+        .sidebar .menu a:hover {
+            background: #ffffff1b !important;
+        }
+        .sidebar .menu a.active {
+            background: #ffffff !important;
+            color: #a74b1d !important;
+            font-weight: bold !important;
+            border-left: 4px solid #e9d1b3 !important;
+            padding-left: 10px !important;
+        }
+        .sidebar .menu-icon {
+            display: inline-block !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            flex-shrink: 0 !important;
+            text-align: center !important;
+            font-size: 17px !important;
+            line-height: 1 !important;
+        }
+        .sidebar .menu-label { display: inline !important; }
+        .sidebar .sidebar-bottom {
+            margin-top: auto !important;
+            padding: 16px 12px !important;
+            border: 0 !important;
+            border-top: 1px solid #ffffff30 !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            display: block !important;
+        }
+        .sidebar .signout {
+            width: 100% !important;
+            min-height: 45px !important;
+            padding: 13px !important;
+            margin: 0 !important;
+            background: #ffffff18 !important;
+            border: 1px solid #ffffff40 !important;
+            border-radius: 7px !important;
+            color: #ffffff !important;
+            font-size: 13px !important;
+            text-align: center !important;
+            cursor: pointer;
+        }
+        .sidebar .signout:hover { background: #ffffff2c !important; }
+        .sidebar .mobile-menu { display: none !important; }
+        .sidebar .menu-label, .sidebar .brand-copy { visibility: visible !important; }
+        body:has(.sidebar) .main,
+        body:has(.sidebar) .shell > main,
+        body:has(.sidebar) .app > main {
+            margin-left: 250px !important;
+            min-width: 0 !important;
+        }
+        body:has(.sidebar) .shell, body:has(.sidebar) .app {
+            display: block !important;
+            min-height: 100vh !important;
+        }
+        @media (max-width: 700px) {
+            .sidebar { width: 76px !important; }
+            .sidebar .brand {
+                justify-content: center !important;
+                padding: 8px !important;
+            }
+            .sidebar .brand-copy, .sidebar .menu-title, .sidebar .menu-label {
+                display: none !important;
+            }
+            .sidebar .menu { padding: 12px 8px !important; }
+            .sidebar .menu a {
+                justify-content: center !important;
+                padding: 13px 5px !important;
+                min-height: 45px !important;
+            }
+            .sidebar .menu a.active { padding-left: 1px !important; }
+            .sidebar .menu-icon { width: 20px !important; min-width: 20px !important; }
+            .sidebar .sidebar-bottom { padding: 12px 6px !important; }
+            .sidebar .signout { padding: 10px 2px !important; font-size: 10px !important; }
+            .sidebar .signout-label { display: none !important; }
+            body:has(.sidebar) .main,
+            body:has(.sidebar) .shell > main,
+            body:has(.sidebar) .app > main { margin-left: 76px !important; }
+        }
+
+    </style>
+<link href="../portal-theme.css?v=uniform-orange-20261107" rel="stylesheet"/>
+<link rel="stylesheet" href="../header-uniform.css?v=20261107-4">
+<style id="dark-orange-header-final">
+
+/* FINAL FIX: matched to the dark burnt-orange dashboard reference.
+   Every portal page includes this inline, so no missing external stylesheet can override it. */
+html body .unified-portal-header,
+html body header.unified-portal-header,
+html body div.unified-portal-header {
+  background:#a34a1d !important;
+  background-color:#a34a1d !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  border:0 !important;
+  border-bottom:3px solid #e9d1b3 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  height:82px !important;
+  min-height:82px !important;
+  max-height:82px !important;
+  padding:17px 30px !important;
+  gap:16px !important;
+  width:100% !important;
+}
+html body .unified-portal-header h1 {
+  color:white !important; font:700 21px/1.25 Arial,Helvetica,sans-serif !important;
+  margin:0 0 3px !important; padding:0 !important;
+}
+html body .unified-portal-header p,
+html body .unified-portal-header .sub {
+  color:#fff0e4 !important; font:400 12px/1.3 Arial,Helvetica,sans-serif !important;
+  margin:0 !important; padding:0 !important;
+}
+html body .unified-portal-header .user-chip,
+html body .unified-portal-header .profile,
+html body .unified-portal-header .date,
+html body .unified-portal-header #adminName,
+html body .unified-portal-header #userName {
+  background:transparent !important; border:0 !important; color:#fff !important;
+  font:500 12px Arial,Helvetica,sans-serif !important;
+  text-align:right !important; box-shadow:none !important;
+}
+html body .app > main.main > .unified-portal-header {
+  margin:-30px -34px 26px !important; width:calc(100% + 68px) !important;
+}
+html body .shell > main > .unified-portal-header {
+  margin:-28px -28px 20px !important; width:calc(100% + 56px) !important;
+}
+@media(max-width:900px) {
+ html body .app > main.main > .unified-portal-header {
+   margin:-24px -20px 26px !important;width:calc(100% + 40px) !important;
+ }
+ html body .shell > main > .unified-portal-header {
+   margin:-18px -18px 20px !important;width:calc(100% + 36px) !important;
+ }
+}
+@media(max-width:700px) {
+ html body .unified-portal-header {padding:13px 16px !important}
+ html body .unified-portal-header h1 {font-size:18px !important}
+ html body .app > main.main > .unified-portal-header {
+   margin:-23px -15px 24px !important;width:calc(100% + 30px) !important;
+ }
+ html body .shell > main > .unified-portal-header {
+   margin:-14px -14px 20px !important;width:calc(100% + 28px) !important;
+ }
+}
+
+</style>
+<link rel="manifest" href="../manifest.webmanifest"/>
+</head>
+<body>
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-mark" id="logoSlot"><img alt="Barangay Document Request logo" src="../barangay-logo.png"/></div>
+<div class="brand-copy">
+<h2>Barangay Document Request</h2>
+<p>Resident Portal</p>
+</div>
+</div>
+<div class="menu-title">MAIN MENU</div>
+<nav aria-label="Resident navigation" class="menu"><a href="dashboard.html"><span class="menu-label">Dashboard</span></a><a href="available-documents.html"><span class="menu-label">Available Documents</span></a><a aria-current="page" class="active" href="my-requests.html"><span class="menu-label">My Requests</span></a><a href="notifications.html"><span class="menu-label">Notifications</span></a><a href="profile.html"><span class="menu-label">My Profile</span></a><div class="sidebar-bottom">
+<button class="signout" id="signoutBtn" type="button">Sign Out</button>
+</div></nav>
+
+</aside>
+<main class="main">
+<header class="topbar unified-portal-header" style="background-color:#a34a1d !important;background-image:none !important;color:#fff !important;">
+<div>
+<h1>My Requests</h1>
+<p>Barangay Document Request and Management System</p>
+</div>
+<div class="user-chip" id="userName">Resident</div>
+</header>
+<section class="content">
+<div class="welcome">
+<h2>Document Request History</h2>
+<p>View your requests, monitor their progress, and check your preferred pickup schedules.</p>
+</div>
+<div class="summary">
+<div class="summary-card"><span>Under Review</span><strong id="countReview">0</strong></div>
+<div class="summary-card"><span>Processing</span><strong id="countProcessing">0</strong></div>
+<div class="summary-card"><span>Ready for Pickup</span><strong id="countReady">0</strong></div>
+<div class="summary-card"><span>Completed</span><strong id="countCompleted">0</strong></div>
+</div>
+<div class="panel">
+<div class="panel-head">
+<h3>All Document Requests</h3>
+<small id="totalLabel">Loading...</small>
+</div>
+<div class="toolbar">
+<input aria-label="Search requests" class="search" id="searchInput" placeholder="Search document or tracking number" type="search"/>
+</div>
+<div aria-label="Filter requests by status" class="tabs" role="group">
+<button class="tab active" data-status="all" type="button">All</button>
+<button class="tab" data-status="under review" type="button">Under Review</button>
+<button class="tab" data-status="processing" type="button">Processing</button>
+<button class="tab" data-status="ready for pickup" type="button">Ready for Pickup</button>
+<button class="tab" data-status="completed" type="button">Completed</button>
+<button class="tab" data-status="rejected" type="button">Rejected</button>
+</div>
+<div aria-live="polite" class="request-list" id="requestList">
+<div class="empty"><h4>Loading your requests...</h4></div>
+</div>
+</div>
+</section>
+</main>
+<div aria-hidden="true" aria-labelledby="modalTitle" aria-modal="true" class="overlay" id="detailsOverlay" role="dialog">
+<div class="modal">
+<div class="modal-head">
+<h3 id="modalTitle">Request Details</h3>
+<button aria-label="Close details" class="close" id="closeModal" type="button">×</button>
+</div>
+<div class="modal-body" id="modalContent"></div>
+</div>
+</div>
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import {
+            getAuth, setPersistence, browserSessionPersistence,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            getDoc,
+            query,
+            where,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnWyjIXO1StOArcObzPH0UZjn6ICXfXCA",
+            authDomain: "barangay-doc-req.firebaseapp.com",
+            projectId: "barangay-doc-req",
+            storageBucket: "barangay-doc-req.firebasestorage.app",
+            messagingSenderId: "176118755540",
+            appId: "1:176118755540:web:45ee5bedf3f3f8c4510b41"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Isolate the login session in this browser tab.
+        await setPersistence(auth, browserSessionPersistence);
+        const db = getFirestore(app);
+
+        const requestList = document.getElementById("requestList");
+        const searchInput = document.getElementById("searchInput");
+        const overlay = document.getElementById("detailsOverlay");
+        const modalContent = document.getElementById("modalContent");
+
+        let requests = [];
+        let selectedStatus = "all";
+        let unsubscribeRequests = null;
+        let currentUserId = null;
+
+        function normalizeStatus(status) {
+            const value = String(status || "under review")
+                .toLowerCase()
+                .replace(/[_-]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+
+            const aliases = {
+                "pending": "under review",
+                "under review": "under review",
+                "in review": "under review",
+                "in progress": "processing",
+                "processing": "processing",
+                "ready": "ready for pickup",
+                "ready for pick up": "ready for pickup",
+                "ready for pickup": "ready for pickup",
+                "completed": "completed",
+                "complete": "completed",
+                "rejected": "rejected",
+                "declined": "rejected"
+            };
+
+            return aliases[value] || value;
+        }
+
+        function displayStatus(status) {
+            const labels = {
+                "under review": "Under Review",
+                "processing": "Processing",
+                "ready for pickup": "Ready for Pickup",
+                "completed": "Completed",
+                "rejected": "Rejected"
+            };
+
+            return labels[normalizeStatus(status)] || String(status || "Under Review");
+        }
+
+        function toDate(value) {
+            if (!value) return null;
+            if (typeof value.toDate === "function") return value.toDate();
+            if (typeof value === "object" && typeof value.seconds === "number") {
+                return new Date(value.seconds * 1000);
+            }
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(value) {
+            const date = toDate(value);
+            return date ? new Intl.DateTimeFormat("en-PH", {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Asia/Manila"
+            }).format(date) : "Not available";
+        }
+
+        function textElement(tag, value, className = "") {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            element.textContent = String(value ?? "");
+            return element;
+        }
+
+        function documentName(request) {
+            return request.documentType || request.documentName || request.document || "Document Request";
+        }
+
+        function trackingNumber(request) {
+            return request.trackingNumber || request.referenceNumber || request.requestNumber || request.id;
+        }
+
+        function pickupLabel(request) {
+            const date = request.pickupDate || request.preferredPickupDate;
+            const time = request.pickupTime || request.preferredPickupTime;
+            return date ? `${date}${time ? " at " + time : ""}` : "Not scheduled";
+        }
+
+        function renderCounts() {
+            const count = status => requests.filter(request => normalizeStatus(request.status) === status).length;
+            document.getElementById("countReview").textContent = count("under review");
+            document.getElementById("countProcessing").textContent = count("processing");
+            document.getElementById("countReady").textContent = count("ready for pickup");
+            document.getElementById("countCompleted").textContent = count("completed");
+            document.getElementById("totalLabel").textContent = `${requests.length} total request${requests.length === 1 ? "" : "s"}`;
+        }
+
+        function showEmpty(title, description, isError = false) {
+            requestList.replaceChildren();
+            const wrapper = textElement("div", "", "empty");
+            wrapper.appendChild(textElement("h4", title, isError ? "error" : ""));
+            wrapper.appendChild(textElement("p", description));
+            requestList.appendChild(wrapper);
+        }
+
+        function renderRequests() {
+            renderCounts();
+            const term = searchInput.value.trim().toLowerCase();
+            const filtered = requests.filter(request => {
+                const matchesStatus = selectedStatus === "all" || normalizeStatus(request.status) === selectedStatus;
+                const matchesSearch = `${documentName(request)} ${trackingNumber(request)}`.toLowerCase().includes(term);
+                return matchesStatus && matchesSearch;
+            });
+
+            if (!filtered.length) {
+                showEmpty("No requests found", "Requests matching your selected status will appear here. You can apply for a document from Available Documents.");
+                return;
+            }
+
+            requestList.replaceChildren();
+            for (const request of filtered) {
+                const status = normalizeStatus(request.status);
+                const card = textElement("article", "", "request-card");
+                const top = textElement("div", "", "request-top");
+                const nameBlock = textElement("div", "");
+                nameBlock.appendChild(textElement("h4", documentName(request)));
+                nameBlock.appendChild(textElement("div", `Tracking No.: ${trackingNumber(request)}`, "request-ref"));
+                top.appendChild(nameBlock);
+                top.appendChild(textElement("span", displayStatus(request.status), `pill ${status === "ready for pickup" ? "ready" : status}`));
+                card.appendChild(top);
+
+                const meta = textElement("div", "", "request-meta");
+                meta.appendChild(textElement("span", `Requested: ${formatDate(request.createdAt || request.submittedAt)}`));
+                meta.appendChild(textElement("span", `Preferred pickup: ${pickupLabel(request)}`));
+                card.appendChild(meta);
+
+                const bottom = textElement("div", "", "request-bottom");
+                bottom.appendChild(textElement("span", "View the progress and details of this request."));
+                const button = textElement("button", "View Details", "view-btn");
+                button.type = "button";
+                button.addEventListener("click", () => openDetails(request.id));
+                bottom.appendChild(button);
+                card.appendChild(bottom);
+                requestList.appendChild(card);
+            }
+        }
+
+        function detailField(label, value) {
+            const wrapper = textElement("div", "", "detail-item");
+            wrapper.appendChild(textElement("small", label));
+            wrapper.appendChild(textElement("strong", value || "Not provided"));
+            return wrapper;
+        }
+
+        function getHistory(request) {
+            const history = Array.isArray(request.statusHistory) ? request.statusHistory :
+                Array.isArray(request.history) ? request.history : [];
+
+            if (history.length) {
+                return history.map(entry => ({
+                    status: displayStatus(entry.status || entry.toStatus || entry.action || "Update"),
+                    date: entry.timestamp || entry.createdAt || entry.date || entry.updatedAt,
+                    note: entry.note || entry.remarks || entry.description || ""
+                })).sort((a, b) => (toDate(b.date)?.getTime() || 0) - (toDate(a.date)?.getTime() || 0));
+            }
+
+            return [{
+                status: displayStatus(request.status),
+                date: request.updatedAt || request.createdAt,
+                note: "Current request status. Earlier updates are not recorded yet."
+            }];
+        }
+
+        function openDetails(id) {
+            const request = requests.find(item => item.id === id);
+            if (!request) return;
+
+            document.getElementById("modalTitle").textContent = documentName(request);
+            modalContent.replaceChildren();
+
+            const grid = textElement("div", "", "detail-grid");
+            grid.appendChild(detailField("Tracking Number", trackingNumber(request)));
+            grid.appendChild(detailField("Current Status", displayStatus(request.status)));
+            grid.appendChild(detailField("Date Requested", formatDate(request.createdAt || request.submittedAt)));
+            grid.appendChild(detailField("Preferred Pickup", pickupLabel(request)));
+            grid.appendChild(detailField("Purpose", request.purpose || request.requestPurpose));
+            grid.appendChild(detailField("Payment Method", request.paymentMethod || "Not specified"));
+            modalContent.appendChild(grid);
+
+            const stages = ["under review", "processing", "ready for pickup", "completed"];
+            const status = normalizeStatus(request.status);
+            const currentIndex = stages.indexOf(status);
+            modalContent.appendChild(textElement("h4", "Request Progress", "section-title"));
+
+            if (status === "rejected") {
+                modalContent.appendChild(textElement("p", "This request has been rejected. See the recorded history or contact the barangay office for more information.", "note"));
+            } else {
+                const steps = textElement("div", "", "steps");
+                stages.forEach((stage, index) => {
+                    const step = textElement("div", "", `step ${index <= currentIndex ? "done" : ""}`);
+                    step.appendChild(textElement("div", index <= currentIndex ? "✓" : index + 1, "circle"));
+                    step.appendChild(textElement("span", displayStatus(stage)));
+                    steps.appendChild(step);
+                });
+                modalContent.appendChild(steps);
+            }
+
+            modalContent.appendChild(textElement("h4", "Request History", "section-title"));
+            const timeline = textElement("div", "", "timeline");
+            getHistory(request).forEach(entry => {
+                const item = textElement("div", "", "timeline-entry");
+                item.appendChild(textElement("strong", entry.status));
+                item.appendChild(textElement("p", formatDate(entry.date)));
+                if (entry.note) item.appendChild(textElement("p", entry.note));
+                timeline.appendChild(item);
+            });
+            modalContent.appendChild(timeline);
+
+            if (request.rejectionReason && status === "rejected") {
+                modalContent.appendChild(textElement("p", `Reason: ${request.rejectionReason}`, "note"));
+            }
+
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+            document.getElementById("closeModal").focus();
+        }
+
+        function closeDetails() {
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        document.querySelectorAll(".tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                selectedStatus = tab.dataset.status;
+                document.querySelectorAll(".tab").forEach(button => button.classList.toggle("active", button === tab));
+                renderRequests();
+            });
+        });
+
+        searchInput.addEventListener("input", renderRequests);
+        document.getElementById("closeModal").addEventListener("click", closeDetails);
+        overlay.addEventListener("click", event => { if (event.target === overlay) closeDetails(); });
+        document.addEventListener("keydown", event => { if (event.key === "Escape") closeDetails(); });
+
+        document.getElementById("signoutBtn").addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                window.location.replace("../index.html");
+            } catch (error) {
+                alert("Unable to sign out. Please try again.");
+            }
+        });
+
+        onAuthStateChanged(auth, async user => {
+            if (unsubscribeRequests) {
+                unsubscribeRequests();
+                unsubscribeRequests = null;
+            }
+
+            if (!user) {
+                window.location.replace("../index.html");
+                return;
+            }
+
+            currentUserId = user.uid;
+
+            try {
+                const profile = await getDoc(doc(db, "users", user.uid));
+                if (!profile.exists() || profile.data().role !== "resident" ||
+                    (profile.data().status && profile.data().status !== "active")) {
+                    await signOut(auth);
+                    window.location.replace("../index.html");
+                    return;
+                }
+
+                document.getElementById("userName").textContent =
+                    profile.data().name || profile.data().fullName || user.email || "Resident";
+
+                const requestsQuery = query(
+                    collection(db, "requests"),
+                    where("residentId", "==", user.uid)
+                );
+
+                unsubscribeRequests = onSnapshot(requestsQuery, snapshot => {
+                    if (currentUserId !== user.uid) return;
+                    requests = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+                    requests.sort((a, b) =>
+                        (toDate(b.createdAt || b.submittedAt)?.getTime() || 0) -
+                        (toDate(a.createdAt || a.submittedAt)?.getTime() || 0)
+                    );
+                    renderRequests();
+                }, error => {
+                    console.error("Unable to load requests:", error);
+                    showEmpty("Unable to load requests", "Check your Firestore permissions and internet connection.", true);
+                });
+            } catch (error) {
+                console.error("Resident verification failed:", error);
+                showEmpty("Unable to verify your account", "Please check your connection and try again.", true);
+            }
+        });
+    </script>
+<script src="desktop-notifications.js" type="module"></script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    const serviceWorkerUrl = new URL("../sw.js", window.location.href);
+    navigator.serviceWorker.register(serviceWorkerUrl).catch((error) => {
+      console.error("PWA service worker registration failed:", error);
+    });
+  });
+}
+</script>
+</body>
+</html>
