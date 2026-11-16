@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="#c8662d" name="theme-color"/>
+<title>Notifications | Barangay Document Services</title>
+<style>
+        :root {
+            --orange: #c8662d;
+            --orange-dark: #a74b1d;
+            --beige: #e9d1b3;
+            --cream: #fff9f0;
+            --ink: #342b26;
+            --muted: #81776f;
+            --line: #eee2d5;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--cream); color: var(--ink); }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        a { text-decoration: none; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 250px;
+            background: var(--orange-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid var(--beige);
+            z-index: 30;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; min-height: 88px; padding: 18px; border-bottom: 1px solid #ffffff30; }
+        .brand-icon { width: 45px; height: 45px; flex: none; display: grid; place-items: center; background: #ffffff20; border: 1px solid #ffffff35; border-radius: 10px; font-size: 23px; }
+        .brand strong { display: block; font-size: 15px; }
+        .brand small { display: block; color: #f6d8c3; font-size: 10px; margin-top: 5px; }
+        .menu-heading { padding: 24px 20px 10px; font-size: 11px; letter-spacing: 1px; color: #f2caa6; }
+        .menu { padding: 0 12px; }
+        .menu a { display: block; padding: 13px 15px; margin-bottom: 6px; border-radius: 7px; color: #fff0e7; font-size: 13px; }
+        .menu a:hover { background: #ffffff18; }
+        .menu a.active { background: #fff; color: var(--orange-dark); font-weight: bold; border-left: 4px solid var(--beige); }
+        .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid #ffffff30; }
+        .signout { width: 100%; padding: 12px; border: 1px solid #ffffff50; background: #ffffff17; border-radius: 7px; color: #fff; }
+        .signout:hover { background: #ffffff2c; }
+
+        .main { margin-left: 250px; min-height: 100vh; }
+        .topbar { min-height: 76px; padding: 18px 30px; display: flex; align-items: center; justify-content: space-between; gap: 15px; background: var(--orange); border-bottom: 3px solid var(--beige); color: #fff; }
+        .topbar h1 { margin: 0 0 5px; font-size: 21px; }
+        .topbar p { margin: 0; font-size: 12px; color: #fff0e4; }
+        .user-chip { font-size: 12px; font-weight: bold; text-align: right; }
+        .content { max-width: 1200px; margin: auto; padding: 30px; }
+        .welcome { margin-bottom: 24px; }
+        .welcome h2 { margin: 0 0 8px; font-size: 23px; }
+        .welcome p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+        .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+        .summary-card { background: var(--orange); color: #fff; border-top: 3px solid var(--beige); border-radius: 9px; padding: 20px; }
+        .summary-card span { display: block; font-size: 12px; color: #ffe6d5; margin-bottom: 10px; }
+        .summary-card strong { font-size: 27px; }
+        .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 19px 21px; background: var(--orange); border-bottom: 3px solid var(--beige); color: #fff; }
+        .panel-head h3 { margin: 0; font-size: 16px; }
+        .mark-all { background: #fff; color: var(--orange-dark); border: 0; border-radius: 6px; padding: 9px 12px; font-size: 12px; font-weight: bold; }
+        .mark-all:disabled { opacity: .55; cursor: not-allowed; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+        .filter { background: #fff; color: #766a60; border: 1px solid var(--line); padding: 9px 14px; border-radius: 7px; font-size: 12px; }
+        .filter.active { color: var(--orange-dark); background: #fff2e4; border-color: var(--beige); font-weight: bold; }
+        .notification { display: flex; align-items: flex-start; gap: 15px; padding: 20px; border-bottom: 1px solid var(--line); }
+        .notification:last-child { border-bottom: 0; }
+        .notification.unread { background: #fff9f1; }
+        .notification-icon { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 9px; background: #fae9d9; color: var(--orange-dark); font-size: 21px; }
+        .notification-content { flex: 1; min-width: 0; }
+        .notification-title { margin: 0 0 7px; font-size: 14px; }
+        .notification-description { margin: 0 0 9px; color: #6f6258; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+        .notification-meta { color: #95887d; font-size: 11px; }
+        .notification-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .small-btn { border: 1px solid #e9d7c4; background: #fff; border-radius: 6px; padding: 8px 11px; font-size: 11px; color: var(--orange-dark); }
+        .small-btn:hover { background: #fff0e2; }
+        .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); margin-left: 7px; vertical-align: middle; }
+        .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+        .empty h4 { color: var(--ink); font-size: 15px; margin: 0 0 8px; }
+        .empty p { font-size: 12px; line-height: 1.7; margin: 0; }
+        .note { margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+        @media (max-width: 900px) { .summary { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) {
+            .sidebar { width: 88px; }
+            .brand { justify-content: center; padding: 10px 4px; }
+            .brand small, .brand strong, .menu-heading { display: none; }
+            .menu { padding: 0 5px; }
+            .menu a { text-align: center; padding: 12px 3px; font-size: 10px; overflow-wrap: anywhere; }
+            .main { margin-left: 88px; }
+            .topbar { padding: 16px 13px; }
+            .topbar h1 { font-size: 17px; }
+            .topbar p, .user-chip { font-size: 10px; }
+            .content { padding: 18px 12px; }
+            .summary { grid-template-columns: 1fr; gap: 10px; }
+            .summary-card { padding: 15px; }
+            .notification { padding: 15px 12px; gap: 10px; }
+            .notification-icon { width: 34px; height: 34px; font-size: 17px; }
+            .panel-head { padding: 15px 12px; }
+        }
+    
+        /* Shared sidebar design — matches the original Resident Dashboard. */
+        .sidebar {
+            position: fixed !important;
+            inset: 0 auto 0 0 !important;
+            width: 250px !important;
+            height: 100vh !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            background: #a74b1d !important;
+            color: #ffffff !important;
+            border: 0 !important;
+            border-right: 3px solid #e9d1b3 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            z-index: 30 !important;
+            border-radius: 0 !important;
+            overflow-y: auto;
+        }
+        .sidebar .brand {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-height: 90px !important;
+            padding: 18px !important;
+            margin: 0 !important;
+            border: 0 !important;
+            border-bottom: 1px solid #ffffff30 !important;
+            color: #ffffff !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            flex-shrink: 0;
+        }
+        .sidebar .brand-mark {
+            width: 47px !important;
+            height: 47px !important;
+            flex-shrink: 0;
+            border: 2px dashed #f4d5b5 !important;
+            border-radius: 9px !important;
+            background: transparent !important;
+            display: grid !important;
+            place-items: center !important;
+            font-size: 11px !important;
+            color: #ffffff !important;
+        }
+        .sidebar .brand-copy h2 {
+            margin: 0 0 5px !important;
+            font-size: 15px !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+        .sidebar .brand-copy p {
+            margin: 0 !important;
+            color: #f7d8c3 !important;
+            font-size: 10px !important;
+            line-height: 1.5 !important;
+        }
+        .sidebar .menu-title {
+            color: #f5d5b1 !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            letter-spacing: 1px !important;
+            padding: 27px 20px 12px !important;
+            margin: 0 !important;
+            background: transparent !important;
+        }
+        .sidebar .menu {
+            display: block !important;
+            padding: 0 12px !important;
+            margin: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+        .sidebar .menu a {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-height: 45px !important;
+            padding: 12px 14px !important;
+            margin: 0 0 5px !important;
+            color: #fff4e9 !important;
+            text-decoration: none !important;
+            border: 0 !important;
+            border-radius: 7px !important;
+            font-size: 13px !important;
+            font-weight: 400 !important;
+            line-height: 1.4 !important;
+            background: transparent !important;
+            text-align: left !important;
+        }
+        .sidebar .menu a:hover {
+            background: #ffffff1b !important;
+        }
+        .sidebar .menu a.active {
+            background: #ffffff !important;
+            color: #a74b1d !important;
+            font-weight: bold !important;
+            border-left: 4px solid #e9d1b3 !important;
+            padding-left: 10px !important;
+        }
+        .sidebar .menu-icon {
+            display: inline-block !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            flex-shrink: 0 !important;
+            text-align: center !important;
+            font-size: 17px !important;
+            line-height: 1 !important;
+        }
+        .sidebar .menu-label { display: inline !important; }
+        .sidebar .sidebar-bottom {
+            margin-top: auto !important;
+            padding: 16px 12px !important;
+            border: 0 !important;
+            border-top: 1px solid #ffffff30 !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            display: block !important;
+        }
+        .sidebar .signout {
+            width: 100% !important;
+            min-height: 45px !important;
+            padding: 13px !important;
+            margin: 0 !important;
+            background: #ffffff18 !important;
+            border: 1px solid #ffffff40 !important;
+            border-radius: 7px !important;
+            color: #ffffff !important;
+            font-size: 13px !important;
+            text-align: center !important;
+            cursor: pointer;
+        }
+        .sidebar .signout:hover { background: #ffffff2c !important; }
+        .sidebar .mobile-menu { display: none !important; }
+        .sidebar .menu-label, .sidebar .brand-copy { visibility: visible !important; }
+        body:has(.sidebar) .main,
+        body:has(.sidebar) .shell > main,
+        body:has(.sidebar) .app > main {
+            margin-left: 250px !important;
+            min-width: 0 !important;
+        }
+        body:has(.sidebar) .shell, body:has(.sidebar) .app {
+            display: block !important;
+            min-height: 100vh !important;
+        }
+        @media (max-width: 700px) {
+            .sidebar { width: 76px !important; }
+            .sidebar .brand {
+                justify-content: center !important;
+                padding: 8px !important;
+            }
+            .sidebar .brand-copy, .sidebar .menu-title, .sidebar .menu-label {
+                display: none !important;
+            }
+            .sidebar .menu { padding: 12px 8px !important; }
+            .sidebar .menu a {
+                justify-content: center !important;
+                padding: 13px 5px !important;
+                min-height: 45px !important;
+            }
+            .sidebar .menu a.active { padding-left: 1px !important; }
+            .sidebar .menu-icon { width: 20px !important; min-width: 20px !important; }
+            .sidebar .sidebar-bottom { padding: 12px 6px !important; }
+            .sidebar .signout { padding: 10px 2px !important; font-size: 10px !important; }
+            .sidebar .signout-label { display: none !important; }
+            body:has(.sidebar) .main,
+            body:has(.sidebar) .shell > main,
+            body:has(.sidebar) .app > main { margin-left: 76px !important; }
+        }
+
+    </style>
+<link href="../portal-theme.css?v=uniform-orange-20261107" rel="stylesheet"/>
+<link rel="stylesheet" href="../header-uniform.css?v=20261107-4">
+<style id="dark-orange-header-final">
+
+/* FINAL FIX: matched to the dark burnt-orange dashboard reference.
+   Every portal page includes this inline, so no missing external stylesheet can override it. */
+html body .unified-portal-header,
+html body header.unified-portal-header,
+html body div.unified-portal-header {
+  background:#a34a1d !important;
+  background-color:#a34a1d !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  border:0 !important;
+  border-bottom:3px solid #e9d1b3 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  height:82px !important;
+  min-height:82px !important;
+  max-height:82px !important;
+  padding:17px 30px !important;
+  gap:16px !important;
+  width:100% !important;
+}
+html body .unified-portal-header h1 {
+  color:white !important; font:700 21px/1.25 Arial,Helvetica,sans-serif !important;
+  margin:0 0 3px !important; padding:0 !important;
+}
+html body .unified-portal-header p,
+html body .unified-portal-header .sub {
+  color:#fff0e4 !important; font:400 12px/1.3 Arial,Helvetica,sans-serif !important;
+  margin:0 !important; padding:0 !important;
+}
+html body .unified-portal-header .user-chip,
+html body .unified-portal-header .profile,
+html body .unified-portal-header .date,
+html body .unified-portal-header #adminName,
+html body .unified-portal-header #userName {
+  background:transparent !important; border:0 !important; color:#fff !important;
+  font:500 12px Arial,Helvetica,sans-serif !important;
+  text-align:right !important; box-shadow:none !important;
+}
+html body .app > main.main > .unified-portal-header {
+  margin:-30px -34px 26px !important; width:calc(100% + 68px) !important;
+}
+html body .shell > main > .unified-portal-header {
+  margin:-28px -28px 20px !important; width:calc(100% + 56px) !important;
+}
+@media(max-width:900px) {
+ html body .app > main.main > .unified-portal-header {
+   margin:-24px -20px 26px !important;width:calc(100% + 40px) !important;
+ }
+ html body .shell > main > .unified-portal-header {
+   margin:-18px -18px 20px !important;width:calc(100% + 36px) !important;
+ }
+}
+@media(max-width:700px) {
+ html body .unified-portal-header {padding:13px 16px !important}
+ html body .unified-portal-header h1 {font-size:18px !important}
+ html body .app > main.main > .unified-portal-header {
+   margin:-23px -15px 24px !important;width:calc(100% + 30px) !important;
+ }
+ html body .shell > main > .unified-portal-header {
+   margin:-14px -14px 20px !important;width:calc(100% + 28px) !important;
+ }
+}
+
+</style>
+<link rel="manifest" href="../manifest.webmanifest"/>
+</head>
+<body>
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-mark" id="logoSlot"><img alt="Barangay Document Request logo" src="../barangay-logo.png"/></div>
+<div class="brand-copy">
+<h2>Barangay Document Request</h2>
+<p>Resident Portal</p>
+</div>
+</div>
+<div class="menu-title">MAIN MENU</div>
+<nav aria-label="Resident navigation" class="menu"><a href="dashboard.html"><span class="menu-label">Dashboard</span></a><a href="available-documents.html"><span class="menu-label">Available Documents</span></a><a href="my-requests.html"><span class="menu-label">My Requests</span></a><a aria-current="page" class="active" href="notifications.html"><span class="menu-label">Notifications</span></a><a href="profile.html"><span class="menu-label">My Profile</span></a><div class="sidebar-bottom">
+<button class="signout" id="signoutBtn" type="button">Sign Out</button>
+</div></nav>
+
+</aside>
+<main class="main">
+<header class="topbar unified-portal-header" style="background-color:#a34a1d !important;background-image:none !important;color:#fff !important;">
+<div>
+<h1>Notifications</h1>
+<p>Barangay Document Request and Management System</p>
+</div>
+<div class="user-chip" id="userName">Resident</div>
+</header>
+<section class="content">
+<div class="welcome">
+<h2>Notification Center</h2>
+<p>See the latest updates about your document requests and verified payments.</p>
+</div>
+<div class="summary">
+<div class="summary-card"><span>Total Notifications</span><strong id="totalCount">0</strong></div>
+<div class="summary-card"><span>Unread</span><strong id="unreadCount">0</strong></div>
+<div class="summary-card"><span>Read</span><strong id="readCount">0</strong></div>
+</div>
+<div class="panel">
+<div class="panel-head">
+<h3>Recent Updates</h3>
+<button class="mark-all" disabled="" id="markAllBtn" type="button">Mark All as Read</button>
+</div>
+<div aria-label="Notification filters" class="toolbar">
+<button class="filter active" data-filter="all" type="button">All</button>
+<button class="filter" data-filter="unread" type="button">Unread</button>
+<button class="filter" data-filter="read" type="button">Read</button>
+</div>
+<div aria-live="polite" id="notificationList">
+<div class="empty"><h4>Loading notifications...</h4></div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0;">
+<button id="enableDesktopAlerts" style="background:#c8662d;color:white;border:0;border-radius:7px;padding:12px 16px;cursor:pointer;font-weight:bold;" type="button">Enable PC Notifications</button>
+<span id="desktopAlertStatus" role="status" style="font-size:12px;color:#81776f;"></span>
+</div>
+<p class="note">Desktop notifications appear while a Resident portal tab is open. To receive alerts when the entire website is closed, Firebase Cloud Messaging and a server sender must be configured separately.</p>
+<script>
+                (() => {
+                    const button = document.getElementById('enableDesktopAlerts');
+                    const status = document.getElementById('desktopAlertStatus');
+                    const refresh = () => {
+                        if (!('Notification' in window)) { status.textContent = 'This browser does not support desktop notifications.'; button.disabled = true; return; }
+                        status.textContent = Notification.permission === 'granted' ? 'PC notifications enabled.' : Notification.permission === 'denied' ? 'Blocked. Allow notifications in your browser site settings.' : 'Click to allow notifications from this website.';
+                        button.disabled = Notification.permission !== 'default';
+                    };
+                    button.addEventListener('click', async () => { try { await Notification.requestPermission(); } catch (error) { status.textContent = error.message; } refresh(); });
+                    refresh();
+                })();
+            </script>
+</section>
+</main>
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnWyjIXO1StOArcObzPH0UZjn6ICXfXCA",
+            authDomain: "barangay-doc-req.firebaseapp.com",
+            projectId: "barangay-doc-req",
+            storageBucket: "barangay-doc-req.firebasestorage.app",
+            messagingSenderId: "176118755540",
+            appId: "1:176118755540:web:45ee5bedf3f3f8c4510b41"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Isolate the login session in this browser tab.
+        await setPersistence(auth, browserSessionPersistence);
+        const db = getFirestore(app);
+        const $ = id => document.getElementById(id);
+
+        let currentUid = null;
+        let unsubscribeRequests = null;
+        let notifications = [];
+        let activeFilter = "all";
+        let readIds = new Set();
+
+        function toDate(value) {
+            if (!value) return null;
+            if (typeof value.toDate === "function") return value.toDate();
+            if (value instanceof Date) return value;
+            if (typeof value === "number") return new Date(value);
+            if (typeof value === "string") {
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? null : date;
+            }
+            return null;
+        }
+
+        function statusLabel(value) {
+            const key = String(value || "").toLowerCase().replace(/[\s_-]/g, "");
+            if (key === "underreview" || key === "pending") return "Under Review";
+            if (key === "processing") return "Processing";
+            if (key === "readyforpickup" || key === "ready") return "Ready for Pickup";
+            if (key === "completed") return "Completed";
+            if (key === "rejected") return "Rejected";
+            return "";
+        }
+
+        function getReadKey() {
+            return `barangay-notifications-read:${currentUid}`;
+        }
+
+        function loadReadIds() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(getReadKey()) || "[]");
+                readIds = new Set(Array.isArray(saved) ? saved : []);
+            } catch (error) {
+                readIds = new Set();
+            }
+        }
+
+        function saveReadIds() {
+            try {
+                localStorage.setItem(getReadKey(), JSON.stringify([...readIds]));
+            } catch (error) {
+                console.warn("Unable to save read notifications on this device.");
+            }
+        }
+
+        function addNotification(items, id, title, description, date, icon, requestId) {
+            items.push({ id, title, description, date: toDate(date), icon, requestId });
+        }
+
+        function buildNotifications(requests) {
+            const items = [];
+
+            for (const request of requests) {
+                const requestId = request.id;
+                const name = String(request.documentName || request.documentType || request.document || "Barangay document");
+                const tracking = String(request.trackingNumber || request.referenceNumber || requestId);
+                const created = request.createdAt || request.submittedAt;
+                const history = Array.isArray(request.statusHistory) ? request.statusHistory :
+                    Array.isArray(request.history) ? request.history : [];
+
+                if (created) {
+                    addNotification(items, `${requestId}:submitted`, "Document Request Submitted",
+                        `Your request for ${name} (${tracking}) has been submitted for review.`, created, "▤", requestId);
+                }
+
+                const seenHistoryStatuses = new Set();
+                for (let i = 0; i < history.length; i++) {
+                    const entry = history[i];
+                    const label = statusLabel(typeof entry === "string" ? entry : entry.status || entry.newStatus);
+                    if (!label) continue;
+                    seenHistoryStatuses.add(label);
+                    const time = typeof entry === "string" ? null : (entry.at || entry.timestamp || entry.createdAt || entry.date || entry.updatedAt);
+                    if (!time) continue;
+                    addNotification(items, `${requestId}:history:${i}:${label}`, label === "Rejected" ? "Document Request Rejected" : "Document Status Updated",
+                        label === "Rejected" ? `Your request for ${name} (${tracking}) was rejected. Check My Requests for details.` :
+                        `Your document ${name} (${tracking}) is now ${label}.${typeof entry === "object" && entry.note ? " Note: " + entry.note : ""}`, time, label === "Rejected" ? "!" : "✓", requestId);
+                }
+
+                const currentStatus = statusLabel(request.status);
+                if (currentStatus && !seenHistoryStatuses.has(currentStatus)) {
+                    const time = request.statusUpdatedAt || request.updatedAt || created;
+                    addNotification(items, `${requestId}:current:${currentStatus}`, currentStatus === "Rejected" ? "Document Request Rejected" : "Document Status Updated",
+                        currentStatus === "Rejected" ? `Your request for ${name} (${tracking}) was rejected.` :
+                        `Your document ${name} (${tracking}) is now ${currentStatus}.`, time, currentStatus === "Rejected" ? "!" : "✓", requestId);
+                }
+
+                const payment = String(request.paymentStatus || "").toLowerCase().trim();
+                if (request.paymentMethod === "GCash" && request.paymentReceiptSubmitted) {
+                    addNotification(items, `${requestId}:payment-submitted`, "Payment Receipt Submitted",
+                        `You confirmed uploading a receipt for ${name} (${tracking}). Await administrator verification.`,
+                        created, "₱", requestId);
+                }
+                if (payment === "rejected") {
+                    addNotification(items, `${requestId}:payment-rejected`, "Payment Not Approved",
+                        `Payment for ${name} (${tracking}) was not approved. Contact the administrator for next steps.`,
+                        request.paymentUpdatedAt || request.updatedAt || created, "!", requestId);
+                }
+                if (payment === "pending verification") {
+                    addNotification(items, `${requestId}:payment-pending`, "Payment Awaiting Verification",
+                        `Payment for ${name} (${tracking}) is pending administrator verification.`, created, "₱", requestId);
+                }
+                if (["approved", "verified", "paid"].includes(payment)) {
+                    addNotification(items, `${requestId}:payment-approved`, "Payment Approved",
+                        `Your payment for ${name} (${tracking}) has been approved.`,
+                        request.paymentApprovedAt || request.paymentVerifiedAt || request.updatedAt || created, "₱", requestId);
+                }
+            }
+
+            return items.sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
+        }
+
+        function createText(tag, className, content) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            node.textContent = content;
+            return node;
+        }
+
+        function render() {
+            const unread = notifications.filter(item => !readIds.has(item.id)).length;
+            $("totalCount").textContent = notifications.length;
+            $("unreadCount").textContent = unread;
+            $("readCount").textContent = notifications.length - unread;
+            $("markAllBtn").disabled = unread === 0;
+
+            const filtered = notifications.filter(item => activeFilter === "all" ||
+                (activeFilter === "unread" ? !readIds.has(item.id) : readIds.has(item.id)));
+            const list = $("notificationList");
+            list.replaceChildren();
+
+            if (!filtered.length) {
+                const empty = createText("div", "empty", "");
+                empty.append(createText("h4", "", notifications.length ? "No notifications in this category" : "No notifications yet"));
+                empty.append(createText("p", "", "Updates will appear when you submit requests or their status changes."));
+                list.append(empty);
+                return;
+            }
+
+            for (const item of filtered) {
+                const unreadItem = !readIds.has(item.id);
+                const row = createText("article", `notification${unreadItem ? " unread" : ""}`, "");
+                row.append(createText("div", "notification-icon", item.icon));
+                const content = createText("div", "notification-content", "");
+                const heading = createText("h4", "notification-title", item.title);
+                if (unreadItem) heading.append(createText("span", "dot", ""));
+                content.append(heading);
+                content.append(createText("p", "notification-description", item.description));
+                content.append(createText("div", "notification-meta", item.date ?
+                    item.date.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Manila" }) : "Date unavailable"));
+
+                const actions = createText("div", "notification-actions", "");
+                const view = createText("a", "small-btn", "View Request");
+                view.href = `my-requests.html`;
+                actions.append(view);
+
+                if (unreadItem) {
+                    const mark = createText("button", "small-btn", "Mark as Read");
+                    mark.type = "button";
+                    mark.addEventListener("click", () => {
+                        readIds.add(item.id);
+                        saveReadIds();
+                        render();
+                    });
+                    actions.append(mark);
+                }
+
+                content.append(actions);
+                row.append(content);
+                list.append(row);
+            }
+        }
+
+        document.querySelectorAll(".filter").forEach(button => {
+            button.addEventListener("click", () => {
+                activeFilter = button.dataset.filter;
+                document.querySelectorAll(".filter").forEach(item => item.classList.toggle("active", item === button));
+                render();
+            });
+        });
+
+        $("markAllBtn").addEventListener("click", () => {
+            notifications.forEach(item => readIds.add(item.id));
+            saveReadIds();
+            render();
+        });
+
+        $("signoutBtn").addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                window.location.replace("../index.html");
+            } catch (error) {
+                alert("Unable to sign out. Please try again.");
+            }
+        });
+
+        onAuthStateChanged(auth, async user => {
+            if (unsubscribeRequests) {
+                unsubscribeRequests();
+                unsubscribeRequests = null;
+            }
+            if (!user) {
+                window.location.replace("../index.html");
+                return;
+            }
+
+            currentUid = user.uid;
+            loadReadIds();
+
+            try {
+                const profile = await getDoc(doc(db, "users", user.uid));
+                if (!profile.exists() || String(profile.data().role || "").trim().toLowerCase() !== "resident" ||
+                    (profile.data().status && profile.data().status !== "active")) {
+                    await signOut(auth);
+                    window.location.replace("../index.html");
+                    return;
+                }
+
+                $("userName").textContent = profile.data().name || profile.data().fullName || user.email || "Resident";
+                const requestsQuery = query(collection(db, "requests"), where("residentId", "==", user.uid));
+
+                unsubscribeRequests = onSnapshot(requestsQuery, snapshot => {
+                    if (currentUid !== user.uid) return;
+                    const requests = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+                    notifications = buildNotifications(requests);
+                    render();
+                }, error => {
+                    console.error("Notification request listener error:", error);
+                    $("notificationList").replaceChildren(createText("div", "empty", "Unable to load notifications. Check Firestore rules for the requests collection."));
+                });
+            } catch (error) {
+                console.error("Resident verification failed:", error);
+                $("notificationList").replaceChildren(createText("div", "empty", "Unable to verify your account. Check your connection and try again."));
+            }
+        });
+    </script>
+<script src="desktop-notifications.js" type="module"></script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    const serviceWorkerUrl = new URL("../sw.js", window.location.href);
+    navigator.serviceWorker.register(serviceWorkerUrl).catch((error) => {
+      console.error("PWA service worker registration failed:", error);
+    });
+  });
+}
+</script>
+</body>
+</html>
